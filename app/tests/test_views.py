@@ -8,14 +8,28 @@ from rest_framework import status
 class DepertmentAPITest(APITestCase):
     def setUp(self):
         self.url = reverse("get_or_create_department")
-    
-    def test_get_departments(self):
-        department_1 = Department.objects.create(name="Accounting")
-        department_2 = Department.objects.create(name="Finance")
+        self.departments_data = [
+            {"name": "Accounting"},
+            {"name": "Engineering"},
+            {"name": "Socials"},
+        ]
         
+    def test_get_departments(self):
+        for department_data in self.departments_data:
+            Department.objects.create(name=department_data["name"])
+    
         response = self.client.get(self.url)
         departments = Department.objects.all()
         serializer = DepartmentSerializer(departments, many=True)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
+        self.assertEqual(len(departments), 3)
+        
+    def test_create_departments(self):
+        for data in self.departments_data:
+            response = self.client.post(self.url, data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, {})
+    
