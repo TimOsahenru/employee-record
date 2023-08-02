@@ -34,7 +34,7 @@ class DepertmentAPITest(APITestCase):
         self.assertEqual(response.data, {})
         
         
-    def test_update_or_delete_department(self):
+    def test_update_department(self):
         department = Department.objects.create(name="Socials")
         url = reverse("update_or_delete_department", args=[department.id])
         updated_data = {
@@ -47,3 +47,14 @@ class DepertmentAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {})
         self.assertEqual(department.name, updated_data["name"])
+        
+        
+    def test_delete_department(self):
+        department = Department.objects.create(name="Human relations")
+        url = reverse("update_or_delete_department", args=[department.id])
+        
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {})
+        self.assertEqual(Department.objects.count(), 0)

@@ -37,5 +37,8 @@ def update_or_delete_department(request, id):
         if serializer.is_valid():
             serializer.save()
             return Response({}, status.HTTP_200_OK)
-        
-    return Response({})
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == "DELETE":
+        department.delete()
+        return Response({})
