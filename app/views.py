@@ -17,7 +17,7 @@ def get_or_create_department(request):
         serializer = DepartmentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({}, status.HTTP_201_CREATED)
+            return Response("Added successfully", status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
     
     
@@ -26,7 +26,7 @@ def update_or_delete_department(request, id):
     try:
         department = Department.objects.get(id=id)
     except Department.DoesNotExist:
-        return Response({}, status.HTTP_400_BAD_REQUEST)
+        return Response("Department does not exist", status.HTTP_400_BAD_REQUEST)
         
     if request.method == "GET":
         serializer = DepartmentSerializer(department)
@@ -36,9 +36,9 @@ def update_or_delete_department(request, id):
         serializer = DepartmentSerializer(department, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({}, status.HTTP_200_OK)
+            return Response("Updated successfully", status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
     
     if request.method == "DELETE":
         department.delete()
-        return Response({})
+        return Response("Deleted successfully")

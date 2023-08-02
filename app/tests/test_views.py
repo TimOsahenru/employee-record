@@ -29,10 +29,17 @@ class DepertmentAPITest(APITestCase):
     def test_create_departments(self):
         for data in self.departments_data:
             response = self.client.post(self.get_create_url, data, format="json")
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(response.data, "Added successfully")
+        self.assertEqual(Department.objects.count(), 3)
         
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data, {})
+    def test_create_department_with_missing_name(self):
+        response = self.client.post(self.get_create_url, {}, format="json")
+        serializer = DepartmentSerializer(data={})
+        serializer.is_valid()
         
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, serializer.errors)
         
     def test_update_department(self):
         department = Department.objects.create(name="Socials")
@@ -45,8 +52,21 @@ class DepertmentAPITest(APITestCase):
         department.refresh_from_db()
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {})
+        self.assertEqual(response.data, "Updated successfully")
         self.assertEqual(department.name, updated_data["name"])
+        
+    def test_update_department_does_not_exist(self):
+        department = Department.objects.create(name={})
+        url = reverse("update_or_delete_department", args=[department.id])
+        
+        response = self.client.put(url, {}, format="json")
+        department.refresh_from_db()
+        
+        serializer = DepartmentSerializer(data={})
+        serializer.is_valid()
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, serializer.errors)
         
         
     def test_delete_department(self):
@@ -56,5 +76,13 @@ class DepertmentAPITest(APITestCase):
         response = self.client.delete(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {})
+        self.assertEqual(response.data, "Deleted successfully")
         self.assertEqual(Department.objects.count(), 0)
+        
+        
+    def test_delete_department_that_does_not_exist(self):
+        url = reverse("update_or_delete_department", args=[1])
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, "Department does not exist")
