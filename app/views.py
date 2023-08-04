@@ -41,4 +41,4 @@ def update_or_delete_department(request, id):
     
     if request.method == "DELETE":
         department.delete()
-        return Response("Deleted successfully")
+        return Response("Deleted successfully", status.HTTP_200_OK)
