@@ -53,4 +53,8 @@ def get_or_create_employee(request):
         return Response(serializer.data)
     
     if request.method == "POST":
-        return Response()
+        serializer = EmployeeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Added successfully", status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

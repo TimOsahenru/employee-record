@@ -144,6 +144,7 @@ class EmployeeAPITest(APITestCase):
         self.assertEqual(len(response.data), len(self.employee_data))
         
     def test_can_create_employee(self):
+        # comments
         data = {
             "name": "Peter Simeon",
             "age": 25,
@@ -151,3 +152,5 @@ class EmployeeAPITest(APITestCase):
             "department": self.department.pk
             }
         response = self.client.post(self.create_employee_url, data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
