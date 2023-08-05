@@ -107,3 +107,47 @@ class DepertmentAPITest(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Department does not exist")
+        
+        
+class EmployeeAPITest(APITestCase):
+    def setUp(self):
+        self.create_employee_url = reverse("get_all_employee_or_create_employee")
+        self.department = Department.objects.create(name="Accounting")
+        self.employee_data = [
+            {
+                "name": "Tim Osahenru",
+                "age": 28,
+                "salary": 3000,
+                "department": self.department
+            },
+            {
+                "name": "John Stewart",
+                "age": 34,
+                "salary": 6000,
+                "department": self.department
+            },
+            {
+                "name": "Peter Simeon",
+                "age": 25,
+                "salary": 4000,
+                "department": self.department
+            }
+        ]
+        
+        for data in self.employee_data:
+            Employee.objects.create(**data)
+            
+            
+    def test_get_all_employees(self):
+        response = self.client.get(self.create_employee_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(self.employee_data))
+        
+    def test_can_create_employee(self):
+        data = {
+            "name": "Peter Simeon",
+            "age": 25,
+            "salary": 4000,
+            "department": self.department.pk
+            }
+        response = self.client.post(self.create_employee_url, data, format="json")

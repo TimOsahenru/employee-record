@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from app.models import Department
+from app.models import Department, Employee
 from rest_framework.response import Response
-from app.serializers import DepartmentSerializer
+from app.serializers import DepartmentSerializer, EmployeeSerializer
 from rest_framework import status
 
 
@@ -42,3 +42,15 @@ def update_or_delete_department(request, id):
     if request.method == "DELETE":
         department.delete()
         return Response("Deleted successfully", status.HTTP_200_OK)
+    
+    
+@api_view(["GET", "POST"])
+def get_or_create_employee(request):
+    
+    if request.method == "GET":
+        employees = Employee.objects.all()
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response(serializer.data)
+    
+    if request.method == "POST":
+        return Response()
