@@ -58,3 +58,26 @@ def get_or_create_employee(request):
             serializer.save()
             return Response("Added successfully", status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    
+    
+@api_view(["GET", "PUT", "DELETE"])
+def update_or_delete_employee(request, id):
+    try:
+        employee = Employee.objects.get(id=id)
+    except Employee.DoesNotExist:
+        return Response("Employee does not exsit", status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == "GET":
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data)
+    
+    if request.method == "PUT":
+        serializer = EmployeeSerializer(employee, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Updated successfully", status.HTTP_200_OK)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == "DELETE":
+        employee.delete()
+        return Response("Deleted successfully", status.HTTP_200_OK)

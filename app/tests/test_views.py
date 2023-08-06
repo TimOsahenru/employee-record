@@ -134,8 +134,9 @@ class EmployeeAPITest(APITestCase):
             }
         ]
         
+        # append using a list
         for data in self.employee_data:
-            Employee.objects.create(**data)
+            self.employee = Employee.objects.create(**data)
             
             
     def test_get_all_employees(self):
@@ -144,7 +145,8 @@ class EmployeeAPITest(APITestCase):
         self.assertEqual(len(response.data), len(self.employee_data))
         
     def test_can_create_employee(self):
-        # comments
+        # This data dictionary is serialized, because we are accessing
+        # the primary key of the department, so need for self.employee_data[0]
         data = {
             "name": "Peter Simeon",
             "age": 25,
@@ -154,3 +156,33 @@ class EmployeeAPITest(APITestCase):
         response = self.client.post(self.create_employee_url, data, format="json")
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, "Added successfully")
+        
+    def test_can_update_employee(self):
+        
+        url = reverse("update_or_delete_employee", args=[self.employee.id])
+        data = {
+            "name": "Peter Simeon",
+            "age": 25,
+            "salary": 4000,
+            "department": self.department.pk
+            }
+        
+        response = self.client.put(url, data, format="json")
+        self.employee.refresh_from_db()
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "Updated successfully")
+        self.assertEqual(self.employee.name, data["name"])
+        self.assertEqual(self.employee.age, data["age"])
+        self.assertEqual(self.employee.salary, data["salary"])
+        self.assertEqual(self.employee.department.id, data["department"])
+        
+        
+    def test_can_delete_employee(self):
+        url = reverse("update_or_delete_employee", args=[self.employee.id])
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "Deleted successfully")
+        self.assertEqual(Employee.objects.count(), 2)
