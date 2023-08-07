@@ -107,3 +107,90 @@ class DepertmentAPITest(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, "Department does not exist")
+        
+        
+class EmployeeAPITest(APITestCase):
+    def setUp(self):
+        self.create_employee_url = reverse("get_all_employee_or_create_employee")
+        self.department = Department.objects.create(name="Accounting")
+        self.employee_data = [
+            {
+                "name": "Tim Osahenru",
+                "age": 28,
+                "salary": 3000,
+                "department": self.department
+            },
+            {
+                "name": "John Stewart",
+                "age": 34,
+                "salary": 6000,
+                "department": self.department
+            },
+            {
+                "name": "Peter Simeon",
+                "age": 25,
+                "salary": 4000,
+                "department": self.department
+            }
+        ]
+        
+        self.employees = []
+        for data in self.employee_data:
+            employee = Employee.objects.create(**data)
+            self.employees.append(employee)
+            
+            
+    def test_get_all_employees(self):
+        response = self.client.get(self.create_employee_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(self.employee_data))
+        
+    def test_can_create_employee(self):
+        # This data dictionary is serialized, because we are accessing
+        # the primary key of the department, so need for self.employee_data[0]
+        data = {
+            "name": "Peter Simeon",
+            "age": 25,
+            "salary": 4000,
+            "department": self.department.pk
+            }
+        response = self.client.post(self.create_employee_url, data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+     
+        self.assertEqual(response.data["name"], data["name"])
+        self.assertEqual(response.data["salary"], data["salary"])
+        self.assertEqual(response.data["age"], data["age"])
+        self.assertEqual(response.data["department"], data["department"])
+        
+        
+    def test_can_update_employee(self):
+        employee = self.employees[1]
+        
+        url = reverse("update_or_delete_employee", args=[employee.id])
+        data = {
+            "name": "Peter Simeon",
+            "age": 25,
+            "salary": 4000,
+            "department": self.department.pk
+            }
+        
+        response = self.client.put(url, data, format="json")
+        employee.refresh_from_db()
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "Updated successfully")
+        self.assertEqual(employee.name, data["name"])
+        self.assertEqual(employee.age, data["age"])
+        self.assertEqual(employee.salary, data["salary"])
+        self.assertEqual(employee.department.id, data["department"])
+        
+        
+    def test_can_delete_employee(self):
+        employee = self.employees[0]
+        url = reverse("update_or_delete_employee", args=[employee.id])
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "Deleted successfully")
+        self.assertEqual(Employee.objects.count(), 2)
